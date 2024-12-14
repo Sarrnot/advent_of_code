@@ -1,4 +1,6 @@
-use std::{env, fs};
+use std::env;
+
+use advent_of_code::get_lists_from_file;
 
 /// Solution for https://adventofcode.com/2024/day/1 - Part One.
 /// Run by `cargo run --bin 2024_01_a`. (optionally can provide custom file path by adding ` -- ./custom_file_path/file.txt`)
@@ -7,20 +9,11 @@ fn main() -> Result<(), String> {
     let args = env::args().collect();
     let file_path = match args_to_file_path(args) {
         Some(value) => value,
-        None => "./resources/2024_01_a-data.txt".to_string(),
+        None => "./resources/2024_01_a.txt".to_string(),
     };
 
-    // Read file
-    let file_content = match fs::read_to_string(file_path) {
-        Ok(text) => text,
-        Err(err) => return Err(err.to_string()),
-    };
-
-    // Parse lines
-    let mut lists = match parse_file(file_content) {
-        Ok(value) => value,
-        Err(err) => return Err(err),
-    };
+    // Parse file
+    let mut lists: [Vec<i32>; 2] = get_lists_from_file(&file_path)?;
 
     // Sort lists
     for list in lists.iter_mut() {
@@ -40,40 +33,6 @@ fn args_to_file_path(args: Vec<String>) -> Option<String> {
     }
 
     Some(args[1].clone())
-}
-
-fn parse_file(text: String) -> Result<[Vec<i32>; 2], String> {
-    let mut lists = [Vec::new(), Vec::new()];
-
-    // Iterate over each line in the file.
-    for (i, line) in text.lines().enumerate() {
-        // Split values by whitespace
-        let parts = line.split_whitespace();
-        let line_num = i + 1;
-
-        // Validate - has 2 values separated by whitespace
-        if parts.clone().count() != 2 {
-            return Err(format!(
-                "Error on line {line_num}. Must have 2 values separated by whitespace."
-            ));
-        }
-
-        // Parse and save both values on current line.
-        for (j, raw_value) in parts.enumerate() {
-            match raw_value.parse::<i32>() {
-                Ok(value) => {
-                    lists[j].push(value);
-                }
-                Err(err) => {
-                    return Err(format!(
-                        "Invalid value \"{raw_value}\" on line {line_num}. {err}"
-                    ));
-                }
-            }
-        }
-    }
-
-    Ok(lists)
 }
 
 fn calculate_distance_sum(sorted_lists: [Vec<i32>; 2]) -> i32 {
