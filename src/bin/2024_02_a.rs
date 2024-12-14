@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use advent_of_code::get_rows_from_file;
 
-const FILE_PATH: &str = "./resources/2024_02_a.txt";
+const FILE_PATH: &str = "./resources/2024_02.txt";
 
 /// Solution for https://adventofcode.com/2024/day/2 - Part One.
 /// Run by `cargo run --bin 2024_02_a`.

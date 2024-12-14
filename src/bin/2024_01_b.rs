@@ -2,7 +2,7 @@ use std::{collections::HashMap, usize};
 
 use advent_of_code::get_columns_from_file;
 
-const FILE_PATH: &str = "./resources/2024_01_b.txt";
+const FILE_PATH: &str = "./resources/2024_01.txt";
 
 /// Solution for https://adventofcode.com/2024/day/1 - Part Two.
 /// Run by `cargo run --bin 2024_01_b`.
