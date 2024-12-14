@@ -25,7 +25,7 @@ pub fn get_lists_from_file<T: FromStr, const N: usize>(
             ));
         }
 
-        // Parse and save both values on current line.
+        // Parse and save all values on current line.
         for (j, raw_value) in parts.enumerate() {
             match raw_value.parse::<T>() {
                 Ok(value) => {
