@@ -51,31 +51,15 @@ fn test_cross(grid: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
     let left_down = grid[y + 1][x - 1];
     let right_down = grid[y + 1][x + 1];
 
-    match left_up {
-        'M' => {
-            if right_down != 'S' {
-                return false;
-            }
-        }
-        'S' => {
-            if right_down != 'M' {
-                return false;
-            }
-        }
+    match (left_up, right_down) {
+        ('M', 'S') => true,
+        ('S', 'M') => true,
         _ => return false,
     };
 
-    match right_up {
-        'M' => {
-            if left_down != 'S' {
-                return false;
-            }
-        }
-        'S' => {
-            if left_down != 'M' {
-                return false;
-            }
-        }
+    match (right_up, left_down) {
+        ('M', 'S') => true,
+        ('S', 'M') => true,
         _ => return false,
     };
 
