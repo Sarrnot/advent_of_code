@@ -4,6 +4,9 @@ const FILE_PATH: &str = "./resources/2024_06.txt";
 
 /// Solution for https://adventofcode.com/2024/day/6 - Part One & Two.
 /// Run by `cargo run --bin 2024_06`.
+/// Could be potentially optimized if each row/column had "cached" obstacle positions
+/// and visiting grid points would be calculated not by iterating over each point individually => O(n)
+/// but by creating "move tuples" - e.g. rows[4] has obstacles [7, 8] and visited points [(2, 6), (16, 9)] => O(1).
 fn main() -> Result<(), String> {
     // Read file
     let file_content = match fs::read_to_string(FILE_PATH) {
