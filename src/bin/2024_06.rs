@@ -1,8 +1,8 @@
-use std::fs;
+use std::{collections::HashSet, fs};
 
 const FILE_PATH: &str = "./resources/2024_06.txt";
 
-/// Solution for https://adventofcode.com/2024/day/6.
+/// Solution for https://adventofcode.com/2024/day/6 - Part One & Two.
 /// Run by `cargo run --bin 2024_06`.
 fn main() -> Result<(), String> {
     // Read file
@@ -12,47 +12,29 @@ fn main() -> Result<(), String> {
     };
 
     // Parse file
-    let mut grid = parse_file(&file_content);
+    let grid = parse_file(&file_content);
 
     // Find guard
     let guard_coords = grid.find_guard_coords();
-    let mut guard = Guard {
+    let guard = Guard {
         direction: Direction::Up,
         x: guard_coords.0,
         y: guard_coords.1,
     };
 
-    // Walk guard
-    loop {
-        // Visit current point
-        grid.set_point(GridPoint::Visited, guard.coords());
-
-        // Find next point, break if would be out of bounds
-        let next_coords = guard.next_coords();
-        let next_point = match next_coords {
-            Some(coords) => match grid.at(coords) {
-                Some(point) => point,
-                None => break,
-            },
-            None => break,
-        };
-
-        // Perform action
-        match next_point {
-            GridPoint::Obstacle => guard.turn(),
-            GridPoint::Empty | GridPoint::Visited => {
-                guard.walk();
-            }
-            GridPoint::Guard => panic!("Data integrity violated, guard found."),
-        }
-    }
+    // Walk guard + recursive cycles (adding obstacles)
+    let mut cyclic_counter = 0;
+    let (is_cyclic, grid) = walk_guard(grid, guard, 0, 1, &mut cyclic_counter);
+    if is_cyclic {
+        panic!("First path is already cyclic.");
+    };
 
     // Count visited
     let mut visited = 0;
     for row in grid.rows {
         for point in row {
             match point {
-                GridPoint::Visited => visited += 1,
+                GridPoint::Visited(_) => visited += 1,
                 _ => (),
             }
         }
@@ -60,8 +42,83 @@ fn main() -> Result<(), String> {
 
     // Print result
     println!("Total number of visited positions: {}", visited);
+    println!("Total number of possible cycles: {}", cyclic_counter);
 
     Ok(())
+}
+
+/// Returns whether the path is cyclic and the mutated Grid with visited points.
+fn walk_guard(
+    mut grid: Grid,
+    mut guard: Guard,
+    depth: usize,
+    max_depth: usize,
+    cyclic_counter: &mut usize,
+) -> (bool, Grid) {
+    // Walk until either out of bounds or cyclic.
+    loop {
+        // Visit current point (coords should be always valid here => unwrap())
+        match grid.at(guard.coords()).unwrap() {
+            GridPoint::Obstacle => {
+                panic!("Data integrity violated, can't stand on an obstacle.");
+            }
+            GridPoint::Visited(prev_directions) => {
+                let mut directions = prev_directions.clone();
+                directions.insert(guard.direction);
+                grid.set_point(GridPoint::Visited(directions), guard.coords());
+            }
+            _ => {
+                let mut directions = HashSet::new();
+                directions.insert(guard.direction);
+                grid.set_point(GridPoint::Visited(directions), guard.coords());
+            }
+        };
+
+        // Find next point, return if it would be out of bounds
+        let next_coords = guard.next_coords();
+        let next_point = match next_coords {
+            Some(coords) => match grid.at(coords) {
+                Some(point) => point,
+                None => return (false, grid),
+            },
+            None => return (false, grid),
+        };
+
+        // Perform action
+        match next_point {
+            GridPoint::Obstacle => guard.turn(),
+            GridPoint::Empty => {
+                if depth < max_depth {
+                    // Fork with an obstacle ahead
+                    let mut grid_clone = grid.clone();
+                    grid_clone.set_point(GridPoint::Obstacle, next_coords.unwrap());
+
+                    let (is_cyclic, _) = walk_guard(
+                        grid_clone,
+                        guard.clone(),
+                        depth + 1,
+                        max_depth,
+                        cyclic_counter,
+                    );
+
+                    if is_cyclic {
+                        *cyclic_counter += 1;
+                    }
+                }
+
+                guard.walk();
+            }
+            GridPoint::Visited(directions) => {
+                // Return if cyclic, walk otherwise
+                if directions.contains(&guard.direction) {
+                    return (true, grid);
+                }
+
+                guard.walk();
+            }
+            GridPoint::Guard => panic!("Data integrity violated, guard found."),
+        }
+    }
 }
 
 fn parse_file(content: &str) -> Grid {
@@ -86,13 +143,15 @@ fn parse_file(content: &str) -> Grid {
     Grid { rows }
 }
 
+#[derive(Clone)]
 enum GridPoint {
     Empty,
     Obstacle,
     Guard,
-    Visited,
+    Visited(HashSet<Direction>),
 }
 
+#[derive(Clone)]
 struct Grid {
     rows: Vec<Vec<GridPoint>>,
 }
@@ -128,6 +187,7 @@ impl Grid {
     }
 }
 
+#[derive(Eq, Hash, PartialEq, Clone, Copy)]
 enum Direction {
     Up,
     Left,
@@ -135,6 +195,7 @@ enum Direction {
     Down,
 }
 
+#[derive(Clone)]
 struct Guard {
     x: usize,
     y: usize,
