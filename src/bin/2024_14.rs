@@ -8,17 +8,13 @@ const FILE_PATH: &str = "./resources/2024_14.txt";
 const X_LEN: usize = 101;
 const Y_LEN: usize = 103;
 const ITER_COUNT: usize = 100;
-const DIRECTIONS: [Distance; 8] = [
-    (-1, 1),  // up left
-    (0, 1),   // up middle
-    (1, 1),   // up right
-    (-1, 0),  // left
+const LOOKUP_DIRECTIONS: [Distance; 4] = [
     (1, 0),   // right
     (-1, -1), // down left
     (0, -1),  // down middle
     (1, -1),  // down right
 ];
-const HEURISTIC_THRESHOLD: usize = 500;
+const HEURISTIC_THRESHOLD: usize = 300;
 
 /// Solution for https://adventofcode.com/2024/day/14 - Part One & Two.
 /// Run by `cargo run --bin 2024_14`.
@@ -115,7 +111,7 @@ fn get_continuity_score(grid: &RobotGrid, robots: &Vec<Robot>) -> usize {
     let mut score = 0;
 
     for robot in robots {
-        for direction in DIRECTIONS {
+        for direction in LOOKUP_DIRECTIONS {
             if let Some(coords) = robot.position.clone().safe_add_distance(direction) {
                 if let Some(point) = grid.at(&coords) {
                     if *point == GridPoint::Robot {
