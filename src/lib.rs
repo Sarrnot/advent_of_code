@@ -115,6 +115,10 @@ impl<T> Grid<T> {
         &self.rows
     }
 
+    pub fn get_rows_mut(&mut self) -> &mut Vec<Vec<T>> {
+        &mut self.rows
+    }
+
     fn are_coords_in_bounds(&self, coords: &Coordinates) -> bool {
         self.is_y_in_bounds(coords.y) && coords.x < self.rows[coords.y].len()
     }
@@ -126,7 +130,7 @@ impl<T> Grid<T> {
 
 pub type Distance = (isize, isize);
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Coordinates {
     pub x: usize,
     pub y: usize,
@@ -167,6 +171,7 @@ impl Coordinates {
     }
 }
 
+#[derive(Debug)]
 pub enum Direction {
     Left,
     Right,
